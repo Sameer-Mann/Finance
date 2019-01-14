@@ -1,0 +1,40 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Portfolio
+{% endblock %}
+
+{% block main %}
+<table class="table table-striped">
+        <thead>
+            <tr align="left">
+                <th>Symbol</th>
+                <th>Name</th>
+                <th>Shares</th>
+                <th>Price</th>
+                <th>TOTAL</th>
+            </tr>
+        </thead>
+        <tfoot>
+            <tr>
+                <td colspan=4>CASH</td>
+                <td align="left">{{cash}}</td>
+            </tr>
+        </tfoot>
+        <tbody>
+            {% for user in users %}
+            <tr align="left">
+                <td>{{user["symbol"]}}</td>
+                <td>{{user["name"]}}</td>
+                <td>{{user["shares"]}}</td>
+                <td>${{user["price"]}}</td>
+                <td>${{user["price"]*user["shares"]}}</td>
+            </tr>
+            {% endfor %}
+            <tr>
+                <td colspan=4>Grand Total(cash+share's)</td>
+                <td align="left">{{total}}</td>
+            </tr>
+        </tbody>
+    </table>
+{% endblock %}
