@@ -323,4 +323,4 @@ def change_password():
             db.commit()
             return redirect("/")
 
-app.run()
+app.run(host='0.0.0.0', port=80)
