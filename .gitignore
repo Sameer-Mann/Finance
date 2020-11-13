@@ -1,3 +1,5 @@
-*/__pycache__
-application.pyc
-app.pyc
+*.pyc
+path.txt
+__pycache__/helpers.cpython-37.pyc
+Pipfile
+Pipfile.lock

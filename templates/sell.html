@@ -7,15 +7,15 @@
 {% block main %}
         <form action="/sell" method="post">
         <div class="form-group">
-            <select class="form-control" name="symbol">
+            <select class="form-control" name="symbol" required="true">
                 <option disabled selected value="">Symbol</option>
                 {% for symbol in symbols %}
-                <option>{{symbol["symbol"]}}</option>
+                <option>{{symbol}}</option>
                 {% endfor %}
             </select>
         </div>
         <div class="form-group">
-            <input autocomplete="off" class="form-control" min="0" name="shares" placeholder="Shares" type="number">
+            <input autocomplete="off" class="form-control" min="0" name="shares" placeholder="Shares" type="number" required="true">
         </div>
         <button class="btn btn-primary" type="submit">Sell</button>
     </form>

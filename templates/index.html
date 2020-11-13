@@ -22,13 +22,13 @@
             </tr>
         </tfoot>
         <tbody>
-            {% for user in users %}
+            {% for i in range(data|length) %}
             <tr align="left">
-                <td>{{user["symbol"]}}</td>
-                <td>{{user["name"]}}</td>
-                <td>{{user["shares"]}}</td>
-                <td>${{user["price"]}}</td>
-                <td>${{user["price"]*user["shares"]}}</td>
+                <td>{{data[i].company_data.symbol}}</td>
+                <td>{{data[i].company_data.name}}</td>
+                <td>{{data[i].shares}}</td>
+                <td>${{price[i]}}</td>
+                <td>${{price[i]*data[i].shares}}</td>
             </tr>
             {% endfor %}
             <tr>

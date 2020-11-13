@@ -17,10 +17,10 @@
     <tbody>
         {% for item in items %}
         <tr>
-            <td>{{item["symbol"]}}</td>
-            <td>{{item["shares"]}}</td>
-            <td>${{item["price"]}}</td>
-            <td>{{item["time"]}}</td>
+            <td>{{item.company_data.symbol}}</td>
+            <td>{{item.shares}}</td>
+            <td>${{item.price}}</td>
+            <td>{{item.time}}</td>
         </tr>
         {% endfor %}
     </tbody>

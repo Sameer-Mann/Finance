@@ -6,14 +6,15 @@
 
 {% block main %}
     <form action="/register" method="post">
+        {{ form.csrf_token }}
         <div class="form-group">
-            <input autocomplete="off" autofocus class="form-control" name="username" placeholder="Username" type="text"/>
+            {{ form.username(placeholder="Username",class="form-control",autofocus=true) }}
         </div>
         <div class="form-group">
-            <input class="form-control" name="password" placeholder="Password" type="password"/>
+            {{ form.password(placeholder="Password",class="form-control") }}
         </div>
         <div class="form-group">
-            <input class="form-control" name="confirmation" placeholder="Confirm Password" type="password"/>
+            {{ form.confirm_password(placeholder="Confirm Password",class="form-control") }}
         </div>
         <button class="btn btn-primary" type="submit">Register</button>
     </form>

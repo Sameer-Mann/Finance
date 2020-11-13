@@ -34,27 +34,19 @@ def login_required(f):
     return decorated_function
 
 
-def lookup(symbol):
+def lookup(symbols):
     """Look up quote for symbol."""
 
     # Contact API
-    try:
-        response = requests.get("https://api.iextrading.com/1.0/stock/{}/quote".format(urllib.parse.quote_plus(symbol)))
-        response.raise_for_status()
-    except requests.RequestException:
+    response = requests.get(f"https://cloud.iexapis.com/stable/stock/market/batch?symbols={symbols}&types=quote&token=sk_ef9431148f1b424f81467ffbf7940f02")
+    if response.status_code != 200:
         return None
 
     # Parse response
     try:
-        quote = response.json()
-        return {
-            "name": quote["companyName"],
-            "price": float(quote["latestPrice"]),
-            "symbol": quote["symbol"]
-        }
+        return [{"price":value['quote']['latestPrice'],"name": value['quote']['companyName'],"symbol":key} for key,value in response.json().items()]
     except (KeyError, TypeError, ValueError):
         return None
-
 
 def usd(value):
     """Format value as USD."""
