@@ -76,7 +76,8 @@ def index():
             stocks = []
         prices = [x["price"] for x in stocks]
         return render_template("index.html", cash=usd(current_user.cash),
-                               data=data, total=usd(tot), price=prices)
+                               data=data, total=usd(tot),
+                               price=prices, usd=usd)
 
 
 @app.route("/buy", methods=["GET", "POST"])

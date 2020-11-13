@@ -6,35 +6,60 @@
 
 {% block main %}
 <table class="table table-striped">
-        <thead>
-            <tr align="left">
-                <th>Symbol</th>
-                <th>Name</th>
-                <th>Shares</th>
-                <th>Price</th>
-                <th>TOTAL</th>
-            </tr>
-        </thead>
-        <tfoot>
-            <tr>
-                <td colspan=4>CASH</td>
-                <td align="left">{{cash}}</td>
-            </tr>
-        </tfoot>
-        <tbody>
-            {% for i in range(data|length) %}
-            <tr align="left">
-                <td>{{data[i].company_data.symbol}}</td>
-                <td>{{data[i].company_data.name}}</td>
-                <td>{{data[i].shares}}</td>
-                <td>${{price[i]}}</td>
-                <td>${{price[i]*data[i].shares}}</td>
-            </tr>
-            {% endfor %}
-            <tr>
-                <td colspan=4>Grand Total(cash+share's)</td>
-                <td align="left">{{total}}</td>
-            </tr>
-        </tbody>
-    </table>
+    <thead>
+        <tr align="left">
+            <th>Symbol</th>
+            <th>Name</th>
+            <th>Shares</th>
+            <th>Price</th>
+            <th>TOTAL</th>
+        </tr>
+    </thead>
+    <tfoot>
+        <tr>
+            <td colspan=4>CASH</td>
+            <td align="left">{{cash}}</td>
+        </tr>
+    </tfoot>
+    <tbody>
+        {% for i in range(data|length) %}
+        <tr align="left">
+            <td>{{data[i].company_data.symbol}}</td>
+            <td>{{data[i].company_data.name}}</td>
+            <td>{{data[i].shares}}</td>
+            <td>${{price[i]}}</td>
+            <td>${{usd(price[i]*data[i].shares)}}</td>
+        </tr>
+        {% endfor %}
+        <tr>
+            <td colspan=4>Grand Total(cash+share's)</td>
+            <td align="left">{{total}}</td>
+        </tr>
+    </tbody>
+</table>
+<script type="text/javascript">
+    const inputField = document.createElement("div");
+    const inputElm = document.createElement('input');
+    const btn = document.createElement("button");
+    btn.classList.add("btn")
+    btn.classList.add("btn-primary");
+    inputField.classList.add("form-group");
+    inputElm.classList.add("form-control");
+    inputElm.setAttribute("autocomplete","off");
+    inputField.appendChild(inputElm);
+    // placeholder type name to be set for a new input field
+    document.querySelector('#quote').onclick = ()=>{
+            document.querySelector('table').hidden=true;
+            var x = inputField;
+            var ip = x.children[0];
+            ip.setAttribute("placeholder","Symbol");
+            ip.setAttribute("type","text");
+            ip.setAttribute("name","symbol");
+            var bt = btn;
+            bt.innerHTML = "Quote";
+            var mn = document.querySelector('main')
+            mn.appendChild(x);
+            mn.appendChild(bt);
+        };
+</script>
 {% endblock %}
