@@ -1,8 +1,5 @@
 import requests
-import urllib.parse
-
-from flask import redirect, render_template, request, session
-from functools import wraps
+from flask import render_template
 
 
 def apology(message, code=400):
@@ -17,36 +14,29 @@ def apology(message, code=400):
                          ("%", "~p"), ("#", "~h"), ("/", "~s"), ("\"", "''")]:
             s = s.replace(old, new)
         return s
-    return render_template("apology.html", top=code, bottom=escape(message)), code
-
-
-def login_required(f):
-    """
-    Decorate routes to require login.
-
-    http://flask.pocoo.org/docs/0.12/patterns/viewdecorators/
-    """
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if session.get("user_id") is None:
-            return redirect("/login")
-        return f(*args, **kwargs)
-    return decorated_function
+    return render_template("apology.html", top=code,
+                           bottom=escape(message)), code
 
 
 def lookup(symbols):
     """Look up quote for symbol."""
 
     # Contact API
-    response = requests.get(f"https://cloud.iexapis.com/stable/stock/market/batch?symbols={symbols}&types=quote&token=sk_ef9431148f1b424f81467ffbf7940f02")
+    baseUrl = "https://cloud.iexapis.com/stable/stock/market/batch"
+    token = "sk_ef9431148f1b424f81467ffbf7940f02"
+    response = requests.get(
+        f"{baseUrl}?symbols={symbols}&types=quote&token={token}")
     if response.status_code != 200:
         return None
 
     # Parse response
     try:
-        return [{"price":value['quote']['latestPrice'],"name": value['quote']['companyName'],"symbol":key} for key,value in response.json().items()]
+        return [{"price": value['quote']['latestPrice'],
+                "name": value['quote']['companyName'], "symbol": key}
+                for key, value in response.json().items()]
     except (KeyError, TypeError, ValueError):
         return None
+
 
 def usd(value):
     """Format value as USD."""

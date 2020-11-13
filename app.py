@@ -1,15 +1,16 @@
 import os
 from flask_sqlalchemy import SQLAlchemy
-from flask import Flask, flash, redirect, render_template, request, session,url_for
-from flask_login import LoginManager, login_user, current_user, logout_user,login_required
+from flask import Flask, redirect, render_template, request, session, url_for
+from flask_login import (LoginManager, login_user,
+                         current_user, logout_user, login_required)
 from flask_session import Session
 from tempfile import mkdtemp
 from werkzeug.exceptions import default_exceptions
 from werkzeug.security import check_password_hash, generate_password_hash
 from datetime import datetime
 from helpers import apology, lookup, usd
-from models import User,Portfolio,Company,History
-from forms import LoginForm,RegistrationForm
+from models import User, Portfolio, Company, History
+from forms import LoginForm, RegistrationForm
 
 # Configure application
 app = Flask(__name__)
@@ -21,9 +22,10 @@ if not os.getenv("DATABASE_URL"):
 # Ensure templates are auto-reloaded
 app.config["TEMPLATES_AUTO_RELOAD"] = True
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("DATABASE_URL")
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS']=False
-app.config['SECRET_KEY']=os.getenv('SECRET_KEY')
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
 app.config['WTF_CSRF_SECRET_KEY'] = os.environb[b'WTF_SECRET_KEY']
+
 
 # Ensure responses aren't cached
 @app.after_request
@@ -43,14 +45,16 @@ app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
 
-db=SQLAlchemy(app)
+db = SQLAlchemy(app)
 
 login1 = LoginManager(app)
 login1.init_app(app)
 
+
 @login1.user_loader
 def load_user(id1):
     return User.query.get(int(id1))
+
 
 @app.route("/")
 @login_required
@@ -59,11 +63,20 @@ def index():
     user_id = current_user.id
 
     if request.method == "GET":
-        cash = current_user.cash
-        data = Portfolio.query.filter_by(user_id=user_id).order_by(Portfolio.shares).all()
-        stocks = lookup(",".join([str(data[i].company_data.symbol) for i in range(len(data))])) if len(data) else []
-        tot = cash + (sum([stocks[i]['price']*data[i].shares for i in range(len(data))]) if len(data) else 0)
-        return render_template("index.html", cash=usd(cash), data=data, total=usd(tot),price=[x["price"] for x in stocks])
+        tot = current_user.cash
+        data = Portfolio.query.filter_by(
+            user_id=user_id).order_by(Portfolio.shares).all()
+        if len(data):
+            stocks = lookup(",".join([
+                    str(data[i].company_data.symbol) for i in range(len(data))
+                    ]))
+            tot += sum([stocks[i]['price']*data[i].shares
+                        for i in range(len(data))])
+        else:
+            stocks = []
+        prices = [x["price"] for x in stocks]
+        return render_template("index.html", cash=usd(current_user.cash),
+                               data=data, total=usd(tot), price=prices)
 
 
 @app.route("/buy", methods=["GET", "POST"])
@@ -94,18 +107,28 @@ def buy():
 
     company_obj = Company.query.filter_by(symbol=form_symbol).first()
     if company_obj is None:
-        db.session.add(Company(symbol=form_symbol,name=lookup(form_symbol)[0]["name"]))
+        db.session.add(Company(
+            symbol=form_symbol, name=lookup(form_symbol)[0]["name"]))
         db.session.commit()
 
     company_obj = Company.query.filter_by(symbol=form_symbol).first()
-    check = Portfolio.query.filter(Portfolio.company_id==company_obj.id and Portfolio.user_id == usid).first()
+    check = Portfolio.query.filter(
+        Portfolio.company_id == company_obj.id and
+        Portfolio.user_id == usid).first()
+
     if check is None:
-        db.session.add(Portfolio(user_id=usid,company_id=company_obj.id,shares=no_of_shares))
+        db.session.add(Portfolio(
+                user_id=usid, company_id=company_obj.id, shares=no_of_shares))
     else:
-        x = Portfolio.query.filter(Portfolio.company_id == company_obj.id).filter(Portfolio.user_id == usid).first()
+        x = Portfolio.query.filter(
+            Portfolio.company_id == company_obj.id).filter(
+                Portfolio.user_id == usid).first()
         x.shares += no_of_shares
         db.session.merge(x)
-    db.session.add(History(user_id=usid,company_id=company_obj.id,time=datetime.utcnow(),price=price,shares=no_of_shares))
+    db.session.add(
+        History(
+            user_id=usid, company_id=company_obj.id, time=datetime.utcnow(),
+            price=price, shares=no_of_shares))
     current_user.cash -= price
     db.session.merge(current_user)
     db.session.commit()
@@ -128,11 +151,12 @@ def login():
 
     login_form = LoginForm()
     if login_form.validate_on_submit():
-        user_object = User.query.filter_by(username=login_form.username.data).first()
+        user_object = User.query.filter_by(
+            username=login_form.username.data).first()
         login_user(user_object)
         return redirect("/")
 
-    return render_template("login.html",form=login_form)
+    return render_template("login.html", form=login_form)
 
 
 @app.route("/logout")
@@ -179,7 +203,7 @@ def register():
         # flash('Registered successfully. Please login.', 'success')
         return redirect(url_for('login'))
 
-    return render_template("register.html",form=reg_form)
+    return render_template("register.html", form=reg_form)
 
 
 @app.route("/sell", methods=["GET", "POST"])
@@ -189,23 +213,27 @@ def sell():
     user_id = current_user.id
 
     if request.method == "GET":
-        symbls = [x.company_data.symbol for x in  Portfolio.query.filter_by(user_id=current_user.id).all() ]
+        symbls = [x.company_data.symbol for x in Portfolio.query.filter_by(
+            user_id=current_user.id).all()]
         return render_template("sell.html", symbols=symbls)
-
 
     # getting the required info from the html form and storing it if necessary
     form_symbol = str(request.form.get("symbol"))
     shares = int(request.form.get("shares"))
     rows = lookup(form_symbol)[0]
     company_obj = Company.query.filter_by(symbol=rows["symbol"]).first()
-    p_obj = Portfolio.query.filter(Portfolio.user_id == user_id).filter(Portfolio.company_id==company_obj.id).first()
+    p_obj = Portfolio.query.filter(
+        Portfolio.user_id == user_id).filter(
+            Portfolio.company_id == company_obj.id).first()
     price = rows["price"]*shares
 
     if shares > p_obj.shares:
         return apology("Not enough Shares")
     current_user.cash += price
     db.session.merge(current_user)
-    db.session.add(History(user_id=user_id,company_id=company_obj.id,time=datetime.utcnow(),price=price,shares=shares))
+    db.session.add(History(
+        user_id=user_id, company_id=company_obj.id, time=datetime.utcnow(),
+        price=price, shares=shares))
     p_obj.shares -= shares
     if p_obj.shares == 0:
         db.session.delete(p_obj)
@@ -237,7 +265,8 @@ def change_password():
     elif request.method == "POST":
         new_password = request.form.get("new_password")
         form_password = request.form.get("current_password")
-        users = db.execute("SELECT * FROM users WHERE id  = :id", {"id":user_id})
+        users = db.execute(
+            "SELECT * FROM users WHERE id  = :id", {"id": user_id})
         user = users.fetchall()
 
         if not request.form.get("confirmation") == new_password:
@@ -247,10 +276,18 @@ def change_password():
             return apology("Incorrect Current Password")
 
         else:
-            db.execute("DELETE FROM users WHERE id  = :id", {"id":user_id})
-            db.execute("INSERT INTO users (id,username,hash,cash) VALUES(:id,:username,:hash,:cash)",{"id":user_id, "username":user[0][1], "hash":generate_password_hash(new_password),"cash":user[0][3]})
+            db.execute("DELETE FROM users WHERE id  = :id", {"id": user_id})
+            db.execute(
+                "INSERT INTO users (id,username,hash,cash) \
+                VALUES(:id,:username,:hash,:cash)",
+                {
+                    "id": user_id, "username": user[0][1],
+                    "hash": generate_password_hash(new_password),
+                    "cash": user[0][3]
+                })
             db.commit()
             return redirect("/")
+
 
 if __name__ == "__main__":
     app.run(debug=True)
