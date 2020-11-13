@@ -1,6 +1,6 @@
 import os
 from flask_sqlalchemy import SQLAlchemy
-from flask import Flask, redirect, render_template, request, session, url_for
+from flask import Flask, redirect, render_template, request, url_for
 from flask_login import (LoginManager, login_user,
                          current_user, logout_user, login_required)
 from flask_session import Session
@@ -257,7 +257,7 @@ for code in default_exceptions:
 @login_required
 def change_password():
     # saving the user_id
-    user_id = session["user_id"]
+    user_id = current_user.id
 
     if request.method == "GET":
         return render_template("password.html")

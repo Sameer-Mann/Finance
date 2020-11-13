@@ -1,5 +1,6 @@
 import requests
 from flask import render_template
+import urllib.parse
 
 
 def apology(message, code=400):
@@ -25,7 +26,7 @@ def lookup(symbols):
     baseUrl = "https://cloud.iexapis.com/stable/stock/market/batch"
     token = "sk_ef9431148f1b424f81467ffbf7940f02"
     response = requests.get(
-        f"{baseUrl}?symbols={symbols}&types=quote&token={token}")
+        f"{baseUrl}?symbols={urllib.parse(symbols)}&types=quote&token={token}")
     if response.status_code != 200:
         return None
 
