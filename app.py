@@ -1,6 +1,6 @@
 import os
 from flask_sqlalchemy import SQLAlchemy
-from flask import Flask, redirect, render_template, request, url_for
+from flask import Flask, redirect, render_template, request, url_for, jsonify
 from flask_login import (LoginManager, login_user,
                          current_user, logout_user, login_required)
 from flask_session import Session
@@ -170,22 +170,28 @@ def logout():
     return redirect(url_for("login"))
 
 
-@app.route("/quote", methods=["GET", "POST"])
+@app.route("/quote", methods=["POST"])
 @login_required
 def quote():
     """Get stock quote."""
 
     # Displaying the page for quote
-    if request.method == "GET":
-        return render_template("quote.html")
+    # if request.method == "GET":
+        # return render_template("quote.html")
 
-    elif request.method == "POST":
-        data = lookup(request.form.get("symbol"))[0]
-
-        if data is None:
-            return apology("Invalid Symbol")
-
-        return render_template("quote1.html", name=data)
+    # elif request.method == "POST":
+    print(request.form)
+    data = lookup(request.form.get("symbol"))
+    print("HI was here",data[0]);
+    if data is None:
+        return apology("Invalid Symbol")
+    data = data[0]
+    # return render_template("quote1.html", name=data)
+    return jsonify({
+        "name": data["name"],
+        "symbol": data["symbol"],
+        "price": data["price"]
+        });
 
 
 @app.route("/register", methods=["GET", "POST"])
