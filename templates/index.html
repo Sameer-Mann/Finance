@@ -5,6 +5,7 @@
 {% endblock %}
 
 {% block main %}
+<script src="/static/index.js"></script>
 <table class="table table-striped">
     <thead>
         <tr align="left">
@@ -15,20 +16,14 @@
             <th>TOTAL</th>
         </tr>
     </thead>
-    <tfoot>
-        <tr>
-            <td colspan=4>CASH</td>
-            <td align="left">{{cash}}</td>
-        </tr>
-    </tfoot>
     <tbody>
         {% for i in range(data|length) %}
         <tr align="left">
             <td>{{data[i].company_data.symbol}}</td>
             <td>{{data[i].company_data.name}}</td>
             <td>{{data[i].shares}}</td>
-            <td>${{price[i]}}</td>
-            <td>${{usd(price[i]*data[i].shares)}}</td>
+            <td>{{usd(price[i])}}</td>
+            <td>{{usd(price[i]*data[i].shares)}}</td>
         </tr>
         {% endfor %}
         <tr>
@@ -36,76 +31,12 @@
             <td align="left">{{total}}</td>
         </tr>
     </tbody>
+    <tfoot>
+        <tr>
+            <td colspan=4>CASH</td>
+            <td align="left">{{cash}}</td>
+        </tr>
+    </tfoot>
 </table>
 <button class="btn btn-primary" hidden></button>
-<script type="text/javascript">
-    const form = document.createElement("form")
-    const inputField = document.createElement("div");
-    const inputElm = document.createElement('input');
-    const btn = document.querySelector("main>button");
-    const table = document.querySelector('table');
-    const mn = document.querySelector("main");
-    var postData;
-    function addAttributes(elm,attributes,values) {
-        for (var i = attributes.length - 1; i >= 0; i--) {
-            elm.setAttribute(attributes[i],values[i]);
-        }
-    }
-    function makePostRequest(form,url){
-        return new Promise((resolve,reject)=>{
-            var req = new XMLHttpRequest();
-            var fd = new FormData(form),data;
-            try{
-                req.open("POST",url,true);
-            }catch(err){
-                console.warn("couldn't complete Request"+err.message);
-                reject();
-            }
-            req.send(fd);
-            req.onreadystatechange = function() {
-                if(this.status==200 && this.readyState == 4){
-                    return resolve(JSON.parse(this.responseText));
-                }
-            }
-        });
-    }
-    function addClasses(obj,values) {
-        values.forEach(v=>{
-            obj.classList.add(v);
-        });
-    }
-    addClasses(inputElm,["form-control"]);
-    addClasses(inputField,["form-group"]);
-    inputField.appendChild(inputElm);
-    form.appendChild(inputField);
-    // placeholder type name to be set for a new input field
-    document.querySelector('#quote').onclick = ()=>{
-            table.setAttribute("hidden","true");
-            var f = form;
-            addAttributes(f.children[0].children[0],["placeholder","type","name"],
-                ["Symbol","text","symbol"]);
-            btn.innerHTML = "Quote";
-            btn.removeAttribute("hidden");
-            mn.appendChild(f);
-        };
-    btn.addEventListener('click',(e)=> {
-            var p = document.querySelector("main>p");
-            if(p == undefined){
-                p=document.createElement("p");
-                mn.appendChild(p);
-            }
-            makePostRequest(document.querySelector("form"),"/quote").then(data => {
-                p.innerHTML = `A share of ${data.name}(${data.symbol}) costs ${data.price}`;
-            });
-    });
-    document.querySelector("#home").onclick = ()=>{
-        mn.removeChild(document.querySelector("form"));
-        var p = document.querySelector("main>p");
-        if(p!== undefined){
-            mn.removeChild(p);
-        }
-        table.removeAttribute("hidden");
-        btn.setAttribute("hidden","true");
-    };
-</script>
 {% endblock %}

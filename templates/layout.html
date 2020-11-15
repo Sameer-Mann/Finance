@@ -33,13 +33,13 @@
                 {% if current_user.is_authenticated %}
                     <ul class="navbar-nav mr-auto mt-2">
                         <li class="nav-item"><a class="nav-link" href="#" id="quote">Quote</a></li>
-                        <li class="nav-item"><a class="nav-link" href="/buy">Buy</a></li>
+                        <li class="nav-item"><a class="nav-link" href="#" id="buy">Buy</a></li>
                         <li class="nav-item"><a class="nav-link" href="/sell">Sell</a></li>
                         <li class="nav-item"><a class="nav-link" href="/history">History</a></li>
                     </ul>
                     <ul class="navbar-nav ml-auto mt-2">
                         <li class="nav-item"><a class="nav-link" href="/change_password">Change Password</a></li>
-                        <li class="nav-item"><span class="nav-link" id="home">Home</span></li>
+                        <li class="nav-item"><a class="nav-link" href="#" id="home">Home</a></li>
                         <li class="nav-item"><a class="nav-link" href="/logout">Log Out</a></li>
                     </ul>
                 {% else %}

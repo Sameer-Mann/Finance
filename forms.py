@@ -1,8 +1,9 @@
 from flask_wtf import FlaskForm
-from wtforms import TextField, PasswordField,StringField
+from wtforms import PasswordField, StringField
 from wtforms.validators import InputRequired, Length, EqualTo, ValidationError
 from werkzeug.security import check_password_hash
 from models import User
+
 
 class Unique(object):
     """A General Class that checks if an object is unique in its model"""
@@ -15,6 +16,7 @@ class Unique(object):
         if check:
             raise ValidationError(self.message)
 
+
 def invalid_credentials(form, field):
     """ Username and password checker """
 
@@ -23,24 +25,27 @@ def invalid_credentials(form, field):
 
     # Check username is invalid
     user_data = User.query.filter_by(username=username).first()
-    if user_data is None or not check_password_hash(user_data.password,password):
+    if user_data is None or not check_password_hash(
+                user_data.password, password):
         raise ValidationError("Username or password is incorrect")
+
 
 class LoginForm(FlaskForm):
     """Login Form"""
-    username = StringField('username',validators=[
+    username = StringField('username', validators=[
         InputRequired(message="Must provide Username")
         ])
-    password = PasswordField('password',validators=[
+    password = PasswordField('password', validators=[
         InputRequired(message="Must provide password"),
-        invalid_credentials
-        ])
+        invalid_credentials])
+
 
 class RegistrationForm(FlaskForm):
     """Registration Form"""
     username = StringField('username', validators=[
         InputRequired(message="Username required"),
-        Length(min=4, max=25, message="Username must be between 4 and 25 characters"),
+        Length(min=4, max=25,
+               message="Username must be between 4 and 25 characters"),
         Unique(
             User,
             User.username,
@@ -49,11 +54,12 @@ class RegistrationForm(FlaskForm):
         ])
 
     password = PasswordField('password', validators=[
-        InputRequired(message="Password required"), 
-        Length(min=4, max=25, message="Password must be between 4 and 25 characters")
+        InputRequired(message="Password required"),
+        Length(min=4, max=25,
+               message="Password must be between 4 and 25 characters")
         ])
 
     confirm_password = PasswordField('confirm_password', validators=[
-        InputRequired(message="Password required"), 
+        InputRequired(message="Password required"),
         EqualTo('password', message="Passwords must match")
         ])

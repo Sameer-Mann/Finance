@@ -47,11 +47,12 @@ Session(app)
 
 db = SQLAlchemy(app)
 
-login1 = LoginManager(app)
-login1.init_app(app)
+login_manager = LoginManager(app)
+login_manager.init_app(app)
+login_manager.login_view = "login"
 
 
-@login1.user_loader
+@login_manager.user_loader
 def load_user(id1):
     return User.query.get(int(id1))
 
@@ -105,34 +106,36 @@ def buy():
 
     if (price > current_user.cash):
         return apology("cannot afford")
+    try:
+        company_obj = Company.query.filter_by(symbol=form_symbol).first()
+        if company_obj is None:
+            db.session.add(Company(
+                symbol=form_symbol, name=lookup(form_symbol)[0]["name"]))
+            db.session.commit()
 
-    company_obj = Company.query.filter_by(symbol=form_symbol).first()
-    if company_obj is None:
-        db.session.add(Company(
-            symbol=form_symbol, name=lookup(form_symbol)[0]["name"]))
+        company_obj = Company.query.filter_by(symbol=form_symbol).first()
+        check = Portfolio.query.filter(
+            Portfolio.company_id == company_obj.id and
+            Portfolio.user_id == usid).first()
+
+        if check is None:
+            db.session.add(Portfolio(
+                    user_id=usid, company_id=company_obj.id, shares=no_of_shares))
+        else:
+            x = Portfolio.query.filter(
+                Portfolio.company_id == company_obj.id).filter(
+                    Portfolio.user_id == usid).first()
+            x.shares += no_of_shares
+            db.session.merge(x)
+        db.session.add(
+            History(
+                user_id=usid, company_id=company_obj.id, time=datetime.utcnow(),
+                price=price, shares=no_of_shares))
+        current_user.cash -= price
+        db.session.merge(current_user)
         db.session.commit()
-
-    company_obj = Company.query.filter_by(symbol=form_symbol).first()
-    check = Portfolio.query.filter(
-        Portfolio.company_id == company_obj.id and
-        Portfolio.user_id == usid).first()
-
-    if check is None:
-        db.session.add(Portfolio(
-                user_id=usid, company_id=company_obj.id, shares=no_of_shares))
-    else:
-        x = Portfolio.query.filter(
-            Portfolio.company_id == company_obj.id).filter(
-                Portfolio.user_id == usid).first()
-        x.shares += no_of_shares
-        db.session.merge(x)
-    db.session.add(
-        History(
-            user_id=usid, company_id=company_obj.id, time=datetime.utcnow(),
-            price=price, shares=no_of_shares))
-    current_user.cash -= price
-    db.session.merge(current_user)
-    db.session.commit()
+    except sqlalchemy.exc.IntegrityError as e:
+        print(e)
     return redirect("/")
 
 
@@ -174,24 +177,23 @@ def logout():
 @login_required
 def quote():
     """Get stock quote."""
-
-    # Displaying the page for quote
-    # if request.method == "GET":
-        # return render_template("quote.html")
-
-    # elif request.method == "POST":
-    print(request.form)
-    data = lookup(request.form.get("symbol"))
-    print("HI was here",data[0]);
+    # print(request.form)
+    names = request.form.get("symbol")
+    data = lookup(names)
     if data is None:
-        return apology("Invalid Symbol")
-    data = data[0]
+        return jsonify({"message": "Invalid Symbol"}),404
+    if len(names.split(",")) == 1:
+        data = data[0]
     # return render_template("quote1.html", name=data)
-    return jsonify({
-        "name": data["name"],
-        "symbol": data["symbol"],
-        "price": data["price"]
-        });
+        return jsonify({
+            "name": data["name"],
+            "symbol": data["symbol"],
+            "price": data["price"]
+            })
+    return jsonify([{"name": x["name"],
+                    "symbol": x["symbol"],
+                     "price": x["price"]
+                     } for x in data])
 
 
 @app.route("/register", methods=["GET", "POST"])
@@ -207,7 +209,7 @@ def register():
         db.session.add(user)
         db.session.commit()
 
-        # flash('Registered successfully. Please login.', 'success')
+        flash('Registered successfully. Please login.', 'success')
         return redirect(url_for('login'))
 
     return render_template("register.html", form=reg_form)
